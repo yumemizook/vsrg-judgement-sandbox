@@ -344,9 +344,17 @@
             addKeyPress();
         });
     }
-
     document.addEventListener('DOMContentLoaded', () => {
-        document.querySelector('.avatar').src = localStorage.getItem('playerAvatar') || '/_fallback.png';
+        const avatar = document.querySelector('.avatar');
+        const loadAvatar = () => {
+            const storedAvatar = localStorage.getItem('playerAvatar');
+            if (storedAvatar) {
+                avatar.src = storedAvatar;
+            } else {
+                avatar.src = './_fallback.png'; // default avatar
+            }
+        };
+        loadAvatar();
         document.querySelector('.username').innerText = localStorage.getItem('playerName') || 'No name';
     });
 
@@ -568,6 +576,7 @@
             document.querySelector('.combonum').innerHTML = '';
             document.querySelector('.grade').innerHTML = 'F';
             document.querySelector('.cleartype').innerHTML = 'Failed';
+            document.querySelector('.cleartype').style.color = clearTypes['Failed'];
             updateLifeBar();
             return; // Stop further processing
         }
