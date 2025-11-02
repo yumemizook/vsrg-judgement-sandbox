@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSRG Judgement Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
+    </script>
+</head>
+<style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: "Mochiy Pop One", sans-serif;
+    }
+
+    h2 {
+        text-align: center;
+        margin-top: 5%;
+    }
+
+    .judgementcontainer {
+        text-align: center;
+    }
+
+    .judgement {
+        position: absolute;
+        top: 35%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 3em;
+    }
+
+    .combonum {
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 2em;
+    }
+    .comboshadow {
+        position: absolute;
+        top: 45%;
+        left: 51%;
+        transform: translateX(-50%);
+        font-size: 2em;
+        color: rgba(255, 255, 255, 0.5);
+        z-index: -1;
+    }
+    .label {
+        font-size: 0.5em;
+        color: #cccccc;
+    }
+
+    .judgelabel {
+        width: 100px;
+        font-size: xx-small;
+        text-align: left;
+        margin: 0 10px;
+    }
+
+    .stats {
+        position: absolute;
+        justify-content: center;
+        top: 50%;
+        right: 20%;
+    }
+
+    .judgementvalue {
+        font-size: 3em;
+    }
+
+    .judgementbuttons {
+        position: absolute;
+        bottom: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+    }
+
+    .judgementbuttons button {
+        background-color: rgb(0, 0, 0);
+        padding: 10px;
+        border-radius: 2px;
+        border-color: black;
+        color: white;
+        font-family: 'Mochiy Pop One', sans-serif;
+    }
+
+    .acc {
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.5em;
+    }
+
+    .grade {
+        position: absolute;
+        top: 15%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 2em;
+    }
+
+    .lifebar {
+        position: absolute;
+        top: 20%;
+        left: 25%;
+        width: 30px;
+        height: 600px;
+        border: 2px solid white;
+    }
+    .nps {
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.5em;
+    }
+    @keyframes judgement {
+        0% {
+            transform: translateX(-50%) scale(1);
+        }
+
+        50% {
+            transform: translateX(-50%) scale(105%);
+        }
+
+        100% {
+            transform: translateX(-50%) scale(1);
+        }
+    }
+
+    @keyframes combo {
+        0% {
+            transform: scale(1);
+            transform-origin: bottom right;
+        }
+
+        50% {
+            transform: scale(120%);
+            transform-origin: bottom right;
+        }
+
+        100% {
+            transform: scale(1);
+            transform-origin: bottom right;
+        }
+    }
+
+    @keyframes comboshadow {
+        0% {
+            transform: translateX(-50%) scale(1);
+            transform-origin: bottom right;
+            opacity: 1;
+        }
+
+        50% {
+            transform: translateX(-50%) scale(190%);
+            transform-origin: bottom right;
+            opacity: 0.5;
+        }
+
+        100% {
+            transform: translateX(-50%) scale(1);
+            transform-origin: bottom right;
+            opacity: 0;
+        }
+    }
+</style>
+
+<body>
+    <h2>VSRG Judgement Demo</h2>
+    <div class="lifebar">
+        <canvas id="lifeCanvas" width="30" height="600"></canvas>
+    </div>
+    <div class="judgementcontainer">
+        <span class="acc"></span>
+        <span class="grade"></span>
+        <span class="judgement">Press keys 1-6 to add judgements!</span>
+        <div class="combo">
+            <span class="combonum"></span>
+            <span class="comboshadow"></span>
+        </div>
+        <span class="nps">0 NPS</span>
+    </div>
+    <div class="stats">
+        <span class="statsnum">
+            <div class="marv judgelabel">MARV <br>
+                <span id="marv" class="judgementvalue">0</span>
+            </div>
+            <div class="perf judgelabel">PERF <br>
+                <span id="perf" class="judgementvalue">0</span>
+            </div>
+            <div class="great judgelabel">GREAT <br>
+                <span id="great" class="judgementvalue">0</span>
+            </div>
+            <div class="good judgelabel">GOOD <br>
+                <span id="good" class="judgementvalue">0</span>
+            </div>
+            <div class="bad judgelabel">BAD <br>
+                <span id="bad" class="judgementvalue">0</span>
+            </div>
+            <div class="miss judgelabel">MISS <br>
+                <span id="miss" class="judgementvalue">0</span>
+            </div>
+            <div class="maxcombo judgelabel">
+                MAX COMBO <br>
+                <span id="maxcombo" class="judgementvalue">0</span>
+            </div>
+        </span>
+    </div>
+    <div class="judgementbuttons">
+        <button class="addMarv">Marvelous</button>
+        <button class="addPerf">Perfect</button>
+        <button class="addGreat">Great</button>
+        <button class="addGood">Good</button>
+        <button class="addBad">Bad</button>
+        <button class="addMiss">Miss</button>
+        <br><br>
+        <button onclick="resetStats()">Reset Stats</button>
+    </div>
+</body>
+<script>
+    window.onload = updateLifeBar;
+    const judgeWeight = {
+        'Marvelous': 1,
+        'Perfect': 300 / 305,
+        'Great': 200 / 305,
+        'Good': 100 / 305,
+        'Bad': 50 / 305,
+        'Miss': 0
+    };
+
+    let stats = {
+        'Marvelous': 0,
+        'Perfect': 0,
+        'Great': 0,
+        'Good': 0,
+        'Bad': 0,
+        'Miss': 0
+    };
+    let combo = 0;
+    let combobreaks = 0;
+    let maxCombo = 0;
+    let life = 50; // start at 50%
+    let timeElapsed = 0; // in seconds
+    let keysPressed = 0;
+    // define the buttons
+    let buttons = {
+        'addMarv': 'MARVELOUS!!',
+        'addPerf': 'PERFECT!',
+        'addGreat': 'GREAT',
+        'addGood': 'GOOD',
+        'addBad': 'BAD',
+        'addMiss': 'MISS'
+    };
+
+    const colorTables = {
+        'MARVELOUS!!': '#c2f2ff',
+        'PERFECT!': '#ffff96',
+        'GREAT': '#96ff9a',
+        'GOOD': '#0084ff',
+        'BAD': '#a245ff',
+        'MISS': '#FF0000'
+    };
+    for (let btnClass in buttons) {
+        document.querySelector(`.${btnClass}`).addEventListener('click', () => {
+            addJudgement(buttons[btnClass]);
+        });
+    }
+
+    // single keydown listener maps keys 1-6 to the buttons
+    document.addEventListener('keydown', (event) => {
+        for (let num = 1; num <= 6; num++) {
+            if (event.key === num.toString()) {
+                let btnClass = Object.keys(buttons)[num - 1];
+                addJudgement(buttons[btnClass]);
+                addKeyPress();
+                break;
+            }
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'z' || event.key === 'Z' || event.key === 'X' || event.key === 'x' || event.key === ',' || event.key === '.') {
+            // Weighted random selection for judgements
+            // Probabilities: MARVELOUS!! (49%), PERFECT! (40%), GREAT (5%), GOOD (3%), BAD (3%), MISS (1%)
+            const rand = Math.random();
+            let judgement;
+            if (rand < 0.49) {
+                judgement = 'MARVELOUS!!';
+            } else if (rand < 0.89) {
+                judgement = 'PERFECT!';
+            } else if (rand < 0.94) {
+                judgement = 'GREAT';
+            } else if (rand < 0.97) {
+                judgement = 'GOOD';
+            } else if (rand < 0.99) {
+                judgement = 'BAD';
+            } else {
+                judgement = 'MISS';
+            }
+            addKeyPress();
+            addJudgement(judgement);
+        }
+    });
+    let keyPresses = [];
+
+    function calculateNPS() {
+        const now = Date.now();
+        // Remove presses older than 2 seconds
+        keyPresses = keyPresses.filter(time => now - time <= 2000);
+        const nps = keyPresses.length / 2; // 2 second window
+        document.querySelector('.nps').innerHTML = `${nps.toFixed(0)} NPS`;
+    }
+
+    function addKeyPress() {
+        keyPresses.push(Date.now());
+    }
+    setInterval(() => {
+        timeElapsed++;
+        calculateNPS();
+    }, 1000);
+    function addJudgement(judgement) {
+        // Map display judgement to stats key
+        const statsKeyMap = {
+            'MARVELOUS!!': 'Marvelous',
+            'PERFECT!': 'Perfect',
+            'GREAT': 'Great',
+            'GOOD': 'Good',
+            'BAD': 'Bad',
+            'MISS': 'Miss'
+        };
+        const statsKey = statsKeyMap[judgement];
+
+        // Update stats (safely increment known keys)
+        if (statsKey && stats.hasOwnProperty(statsKey)) {
+            stats[statsKey]++;
+        }
+        // Calculate life
+        const lifeChangeMap = {
+            'MARVELOUS!!': 0.8,
+            'PERFECT!': 0.8,
+            'GREAT': 0.4,
+            'GOOD': 0,
+            'BAD': -4,
+            'MISS': -8
+        };
+        life += lifeChangeMap[judgement]
+        life = Math.min(Math.max(life, 0), 100); // Clamp between 0 and 100
+        updateLifeBar();
+        console.log(`Life: ${life.toFixed(2)}%`);
+        if (life === 0) {
+            document.querySelector('.judgement').innerHTML = 'GAME OVER';
+            document.querySelector('.combonum').innerHTML = '';
+            document.querySelector('.grade').innerHTML = 'F';
+            updateLifeBar();
+            return; // Stop further processing
+        }
+        calculateNPS();
+        // Calculate accuracy
+        let totalWeight = 0;
+        let totalNotes = 0;
+        for (let key in stats) {
+            totalWeight += stats[key] * judgeWeight[key];
+            totalNotes += stats[key];
+            accuracy = (totalWeight / totalNotes) * 100;
+        }
+
+        if (accuracy == 100 && stats['Miss'] === 0 && stats['Bad'] === 0 && stats['Good'] === 0 && stats['Great'] === 0 && stats['Perfect'] === 0) {
+            grade = 'AAAA';
+        }
+        else if (stats['Miss'] === 0 && stats['Bad'] === 0 && stats['Good'] === 0 && stats['Great'] === 0) {
+            grade = 'AAA';
+        }
+        else if (accuracy >= 93) {
+            grade = 'AA';
+        }
+        else if (accuracy >= 80) {
+            grade = 'A';
+        }
+        else if (accuracy >= 70) {
+            grade = 'B';
+        }
+        else if (accuracy >= 60) {
+            grade = 'C';
+        }
+        else {
+            grade = 'D';
+        }
+
+        const gradeColors = {
+            'AAAA': '#00ccff',
+            'AAA': '#ffff00',
+            'AA': '#2bff00',
+            'A': '#ff2f00',
+            'B': '#0000ff',
+            'C': '#a600ff',
+            'D': '#ff0000'
+        };
+        // Update combo
+        if (judgement === 'GOOD' || judgement === 'BAD' || judgement === 'MISS') {
+            combo = ""; // hide on cb judgements
+            combobreaks++;
+        } else {
+            combo++;
+            combobreaks = "";
+        }
+        if (combo > maxCombo) {
+            maxCombo = combo;
+        }
+        // Update display
+        document.querySelector('.grade').innerHTML = `${grade}`;
+        document.querySelector('.grade').style.color = gradeColors[grade] || '#ffffff';
+
+        document.querySelector('.acc').innerHTML = `${accuracy.toFixed(2)}%`;
+
+        document.querySelector('.judgement').innerHTML = judgement;
+        document.querySelector('.judgement').style.animation = 'none';
+        void document.querySelector('.judgement').offsetWidth; // force reflow
+        document.querySelector('.judgement').style.animation = 'judgement 0.05s forwards';
+        document.querySelector('.judgement').style.color = colorTables[judgement] || '#ffffff';
+
+        if (judgement !== 'GOOD' && judgement !== 'BAD' && judgement !== 'MISS') {
+            document.querySelector('.combonum').innerHTML = `<span class="combofill">${combo}</span> <span class="label">COMBO</span>`;
+            document.querySelector('.comboshadow').innerHTML = `${combo}`
+            document.querySelector('.comboshadow').style.animation = 'none';
+            void document.querySelector('.comboshadow').offsetWidth; // force reflow
+            document.querySelector('.comboshadow').style.animation = 'comboshadow 0.5s forwards';
+
+            document.querySelector('.combonum').style.color = '';
+            document.querySelector('.combonum').style.animation = 'none';
+            void document.querySelector('.combonum').offsetWidth; // force reflow
+            document.querySelector('.combonum').style.animation = 'combo 0.1s forwards';
+        }
+        else document.querySelector('.combonum').innerHTML = "";
+        if (combobreaks >= 5) {
+            document.querySelector('.combonum').innerHTML = `<span class="combofill">${combobreaks}</span> <span class="label">MISSES</span>`;
+            document.querySelector('.combonum').style.color = '#FF0000';
+            document.querySelector('.label').style.color = '#FF0000';
+        }
+        updateStatsDisplay();
+    }
+
+    function updateStatsDisplay() {
+        document.querySelector('#marv').innerText = stats['Marvelous'];
+        document.querySelector('#perf').innerText = stats['Perfect'];
+        document.querySelector('#great').innerText = stats['Great'];
+        document.querySelector('#good').innerText = stats['Good'];
+        document.querySelector('#bad').innerText = stats['Bad'];
+        document.querySelector('#miss').innerText = stats['Miss'];
+        document.querySelector('#maxcombo').innerText = maxCombo;
+    }
+
+    function updateLifeBar() {
+        const canvas = document.getElementById('lifeCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const lifePercentage = Math.max(0, Math.min(life, 100)); // Clamp between 0 and 100
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw background
+        ctx.fillStyle = '#444';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw life bar with a simple red->green gradient
+        const grd = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        grd.addColorStop(0, '#ff0000');
+        grd.addColorStop(0.5, '#00ffff');
+        grd.addColorStop(1, '#222222');
+        ctx.fillStyle = grd;
+
+        // Calculate height and y position for bottom-to-top fill
+        const barHeight = canvas.height * lifePercentage / 100;
+        const y = canvas.height - barHeight;
+        ctx.fillRect(0, y, canvas.width, barHeight);
+    }
+    function resetStats() {
+        stats = {
+            'Marvelous': 0,
+            'Perfect': 0,
+            'Great': 0,
+            'Good': 0,
+            'Bad': 0,
+            'Miss': 0
+        };
+        accuracy = 0;
+        life = 50; // reset life to 50%
+        grade = '';
+        combo = 0;
+        combobreaks = 0;
+        maxCombo = 0;
+
+        updateLifeBar();
+        document.querySelector('.judgement').innerHTML = 'Press keys 1-6 to add judgements!';
+        document.querySelector('.combonum').innerHTML = '';
+        document.querySelector('.combonum').style.color = '';
+        document.querySelector('.judgement').style.color = '#ffffff';
+        document.querySelector('.acc').innerHTML = '';
+        document.querySelector('.grade').innerHTML = '';
+        document.querySelector('.nps').innerHTML = '0 NPS';
+        updateStatsDisplay();
+    }
+</script>
+
+</html>
