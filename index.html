@@ -44,6 +44,7 @@
         transform: translateX(-50%);
         font-size: 2em;
     }
+
     .comboshadow {
         position: absolute;
         top: 45%;
@@ -53,6 +54,7 @@
         color: rgba(255, 255, 255, 0.5);
         z-index: -1;
     }
+
     .label {
         font-size: 0.5em;
         color: #cccccc;
@@ -106,7 +108,7 @@
         top: 15%;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 2em;
+        font-size: 2.5em;
     }
 
     .lifebar {
@@ -117,6 +119,7 @@
         height: 600px;
         border: 2px solid white;
     }
+
     .nps {
         position: absolute;
         top: 60%;
@@ -124,6 +127,14 @@
         transform: translateX(-50%);
         font-size: 1.5em;
     }
+
+    .avatar {
+        width: 100px;
+        height: 100px;
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
     @keyframes judgement {
         0% {
             transform: translateX(-50%) scale(1);
@@ -174,10 +185,36 @@
             opacity: 0;
         }
     }
+
+    .playerinfo {
+        position: absolute;
+        bottom: 0%;
+        left: 0%;
+        display: flex;
+        align-items: center;
+
+    }
+
+    .rate {
+        font-size: 2.75em;
+        margin-left: 5px;
+    }
+
+    .username {
+        font-size: 1.5em;
+        margin-left: 5px;
+    }
 </style>
 
 <body>
     <h2>VSRG Judgement Demo</h2>
+    <div class="playerinfo">
+        <img src="" alt="" class="avatar">
+        <div class="stat2">
+            <span class="username">No name</span><br>
+            <span class="rate">0.00%</span>
+        </div>
+    </div>
     <div class="lifebar">
         <canvas id="lifeCanvas" width="30" height="600"></canvas>
     </div>
@@ -277,6 +314,38 @@
         });
     }
 
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelector('.avatar').src = localStorage.getItem('playerAvatar') || '/_fallback.png';
+        document.querySelector('.username').innerText = localStorage.getItem('playerName') || 'No name';
+    });
+
+    const avatarFrame = document.querySelector('.avatar');
+    const usernameSpan = document.querySelector('.username');
+    const scoreRate = document.querySelector('.rate');
+    avatarFrame.onerror = () => {
+        avatarFrame.style.display = 'none'; // hide if image fails to load
+    };
+
+    avatarFrame.addEventListener('click', () => {
+        const newAvatar = prompt('Enter avatar image URL:');
+        if (newAvatar) {
+            avatarFrame.src = newAvatar;
+            avatarFrame.style.display = 'block'; // show the image
+            localStorage.setItem('playerAvatar', newAvatar);
+        }
+    });
+    usernameSpan.addEventListener('click', () => {
+        const newName = prompt('Enter your name:');
+        if (newName) {
+            usernameSpan.innerText = newName;
+            localStorage.setItem('playerName', newName);
+        }
+    });
+
+    scoreRate.addEventListener('click', () => {
+        const notes = prompt('Enter note count:');
+        localStorage.setItem('noteCount', notes);
+    });
     // single keydown listener maps keys 1-6 to the buttons
     document.addEventListener('keydown', (event) => {
         for (let num = 1; num <= 6; num++) {
@@ -310,7 +379,11 @@
             addKeyPress();
             addJudgement(judgement);
         }
+            if (event.key === 'r' || event.key === 'R') {
+        resetStats();
+    }
     });
+
     let keyPresses = [];
 
     function calculateNPS() {
@@ -329,6 +402,7 @@
         calculateNPS();
     }, 1000);
     function addJudgement(judgement) {
+        document.querySelector('h2').style.display = 'none'; // hide instructions after first judgement
         // Map display judgement to stats key
         const statsKeyMap = {
             'MARVELOUS!!': 'Marvelous',
@@ -405,6 +479,13 @@
             'C': '#a600ff',
             'D': '#ff0000'
         };
+
+        // Update DP rate
+        const noteCount = localStorage.getItem('noteCount');
+        if (noteCount) {
+            scoreRate.innerText = Math.min((stats['Marvelous'] + stats['Perfect'] + stats['Great'] + stats['Good'] + stats['Bad'] + stats['Miss']) * 100 / noteCount, 100).toFixed(2) + '%';
+        }
+
         // Update combo
         if (judgement === 'GOOD' || judgement === 'BAD' || judgement === 'MISS') {
             combo = ""; // hide on cb judgements
@@ -446,6 +527,7 @@
             document.querySelector('.combonum').style.color = '#FF0000';
             document.querySelector('.label').style.color = '#FF0000';
         }
+
         updateStatsDisplay();
     }
 
@@ -503,12 +585,14 @@
 
         updateLifeBar();
         document.querySelector('.judgement').innerHTML = 'Press keys 1-6 to add judgements!';
+        document.querySelector('.rate').innerHTML = '0.00%';
         document.querySelector('.combonum').innerHTML = '';
         document.querySelector('.combonum').style.color = '';
         document.querySelector('.judgement').style.color = '#ffffff';
         document.querySelector('.acc').innerHTML = '';
         document.querySelector('.grade').innerHTML = '';
         document.querySelector('.nps').innerHTML = '0 NPS';
+        document.querySelector('h2').style.display = 'block'; // show instructions again
         updateStatsDisplay();
     }
 </script>
