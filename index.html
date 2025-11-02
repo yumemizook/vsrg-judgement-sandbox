@@ -483,7 +483,8 @@
         // Update DP rate
         const noteCount = localStorage.getItem('noteCount');
         if (noteCount) {
-            scoreRate.innerText = Math.min((stats['Marvelous'] + (stats['Perfect']  * 300/305) + (stats['Great'] * 200/305) + (stats['Good'] *100/305) + (stats['Bad'] *50/305) + (stats['Miss'] * 0) * 100 / noteCount, 100)).toFixed(2) + '%';
+            const weightedSum = stats['Marvelous'] + (stats['Perfect'] * 300/305) + (stats['Great'] * 200/305) + (stats['Good'] * 100/305) + (stats['Bad'] * 50/305) + (stats['Miss'] * 0);
+            scoreRate.innerText = Math.min((weightedSum / noteCount) * 100, 100).toFixed(2) + '%';
         }
 
         // Update combo
