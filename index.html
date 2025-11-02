@@ -135,6 +135,14 @@
         cursor: pointer;
     }
 
+    .cleartype {
+        position: absolute;
+        top: 21%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.25em;
+    }
+
     @keyframes judgement {
         0% {
             transform: translateX(-50%) scale(1);
@@ -204,6 +212,16 @@
         font-size: 1.5em;
         margin-left: 5px;
     }
+    
+    .ratio
+    {
+        position: absolute;
+        bottom: 8.5%;
+        right: 10%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
 </style>
 
 <body>
@@ -221,6 +239,7 @@
     <div class="judgementcontainer">
         <span class="acc"></span>
         <span class="grade"></span>
+        <span class="cleartype"></span>
         <span class="judgement">Press keys 1-6 to add judgements!</span>
         <div class="combo">
             <span class="combonum"></span>
@@ -254,16 +273,27 @@
             </div>
         </span>
     </div>
-    <div class="judgementbuttons">
-        <button class="addMarv">Marvelous</button>
-        <button class="addPerf">Perfect</button>
-        <button class="addGreat">Great</button>
-        <button class="addGood">Good</button>
-        <button class="addBad">Bad</button>
-        <button class="addMiss">Miss</button>
-        <br><br>
-        <button onclick="resetStats()">Reset Stats</button>
+    <div class="ratio">
+        <div class="ma judgelabel">MA<br>
+            <span id="ma" class="judgementvalue" style="color: #c2f2ff;">0.00:1</span>
+        </div>
+        <div class="pa judgelabel">PA<br>
+            <span id="pa" class="judgementvalue" style="color: #ffff96;">0.00:1</span>
+        </div>
+        <div class="gr judgelabel">GR/CB<br>
+            <span id="gr" class="judgementvalue" style="color: #96ff9a;">0.00:1</span>
+        </div>
     </div>
+        <div class="judgementbuttons">
+            <button class="addMarv">Marvelous</button>
+            <button class="addPerf">Perfect</button>
+            <button class="addGreat">Great</button>
+            <button class="addGood">Good</button>
+            <button class="addBad">Bad</button>
+            <button class="addMiss">Miss</button>
+            <br><br>
+            <button onclick="resetStats()">Reset Stats</button>
+        </div>
 </body>
 <script>
     window.onload = updateLifeBar;
@@ -311,6 +341,7 @@
     for (let btnClass in buttons) {
         document.querySelector(`.${btnClass}`).addEventListener('click', () => {
             addJudgement(buttons[btnClass]);
+            addKeyPress();
         });
     }
 
@@ -379,9 +410,9 @@
             addKeyPress();
             addJudgement(judgement);
         }
-            if (event.key === 'r' || event.key === 'R') {
-        resetStats();
-    }
+        if (event.key === 'r' || event.key === 'R') {
+            resetStats();
+        }
     });
 
     let keyPresses = [];
@@ -414,11 +445,113 @@
         };
         const statsKey = statsKeyMap[judgement];
 
+
+        const clearTypes = {
+            "MFC": "#66ccff",
+            "WF": "#dddddd",
+            "SDP": "#cc8800",
+            "PFC": "#eeaa00",
+            "BF": "#999999",
+            "SDG": "#448844",
+            "FC": "#66cc66",
+            "MF": "#cc6666",
+            "SDCB": "#33bbff",
+            "Clear": "#33aaff",
+            "Failed": "#e61e25"
+        };
+        const cleartypeSpan = document.querySelector('.cleartype');
+
         // Update stats (safely increment known keys)
         if (statsKey && stats.hasOwnProperty(statsKey)) {
             stats[statsKey]++;
         }
-        // Calculate life
+        // Update clear type display
+        let cleartype = '';
+        // MFC: Only Marvelous, no other judgements
+        if (
+            stats['Miss'] === 0 &&
+            stats['Bad'] === 0 &&
+            stats['Good'] === 0 &&
+            stats['Great'] === 0 &&
+            stats['Perfect'] === 0 &&
+            stats['Marvelous'] > 0
+        ) {
+            cleartype = 'MFC';
+        }
+        // WF: Only one Perfect, rest Marvelous
+        else if (
+            stats['Miss'] === 0 &&
+            stats['Bad'] === 0 &&
+            stats['Good'] === 0 &&
+            stats['Great'] === 0 &&
+            stats['Perfect'] === 1
+        ) {
+            cleartype = 'WF';
+        }
+        // SDP: 2-9 Perfects, rest Marvelous
+        else if (
+            stats['Miss'] === 0 &&
+            stats['Bad'] === 0 &&
+            stats['Good'] === 0 &&
+            stats['Great'] === 0 &&
+            stats['Perfect'] > 1 &&
+            stats['Perfect'] < 10
+        ) {
+            cleartype = 'SDP';
+        }
+        // PFC: At least ten Perfect, no Great/Good/Bad/Miss
+        else if (
+            stats['Miss'] === 0 &&
+            stats['Bad'] === 0 &&
+            stats['Good'] === 0 &&
+            stats['Great'] === 0 &&
+            stats['Perfect'] >= 10
+        ) {
+            cleartype = 'PFC';
+        }
+        // BF: Only one Great, rest Marvelous/Perfect
+        else if (
+            stats['Miss'] === 0 &&
+            stats['Bad'] === 0 &&
+            stats['Good'] === 0 &&
+            stats['Great'] === 1
+        ) {
+            cleartype = 'BF';
+        }
+        // SDG: 2-9 Greats, rest Marvelous/Perfect
+        else if (
+            stats['Miss'] === 0 &&
+            stats['Bad'] === 0 &&
+            stats['Good'] === 0 &&
+            stats['Great'] > 1 &&
+            stats['Great'] < 10
+        ) {
+            cleartype = 'SDG';
+        }
+        // FC: No Miss/Bad/Good, at least 10 Greats
+        else if (
+            stats['Miss'] === 0 &&
+            stats['Bad'] === 0 &&
+            stats['Good'] === 0 &&
+            stats['Great'] >= 10
+        ) {
+            cleartype = 'FC';
+        }
+        // MF: Only one Miss/Bad/Good
+        else if (
+            (stats['Miss'] + stats['Bad'] + stats['Good']) === 1
+        ) {
+            cleartype = 'MF';
+        }
+        // SDCB: Less than 10 Miss/Bad/Good
+        else if (
+            (stats['Miss'] + stats['Bad'] + stats['Good']) < 10
+        ) {
+            cleartype = 'SDCB';
+        }
+        else {
+            cleartype = 'Clear';
+        }
         const lifeChangeMap = {
             'MARVELOUS!!': 0.8,
             'PERFECT!': 0.8,
@@ -430,11 +563,11 @@
         life += lifeChangeMap[judgement]
         life = Math.min(Math.max(life, 0), 100); // Clamp between 0 and 100
         updateLifeBar();
-        console.log(`Life: ${life.toFixed(2)}%`);
         if (life === 0) {
             document.querySelector('.judgement').innerHTML = 'GAME OVER';
             document.querySelector('.combonum').innerHTML = '';
             document.querySelector('.grade').innerHTML = 'F';
+            document.querySelector('.cleartype').innerHTML = 'Failed';
             updateLifeBar();
             return; // Stop further processing
         }
@@ -479,11 +612,10 @@
             'C': '#a600ff',
             'D': '#ff0000'
         };
-
         // Update DP rate
         const noteCount = localStorage.getItem('noteCount');
         if (noteCount) {
-            const weightedSum = stats['Marvelous'] + (stats['Perfect'] * 300/305) + (stats['Great'] * 200/305) + (stats['Good'] * 100/305) + (stats['Bad'] * 50/305) + (stats['Miss'] * 0);
+            const weightedSum = stats['Marvelous'] + (stats['Perfect'] * 300 / 305) + (stats['Great'] * 200 / 305) + (stats['Good'] * 100 / 305) + (stats['Bad'] * 50 / 305) + (stats['Miss'] * 0);
             scoreRate.innerText = Math.min((weightedSum / noteCount) * 100, 100).toFixed(2) + '%';
         }
 
@@ -502,6 +634,9 @@
         document.querySelector('.grade').innerHTML = `${grade}`;
         document.querySelector('.grade').style.color = gradeColors[grade] || '#ffffff';
 
+
+        cleartypeSpan.innerHTML = `${cleartype}`;
+        cleartypeSpan.style.color = clearTypes[cleartype] || '#ffffff';
         document.querySelector('.acc').innerHTML = `${accuracy.toFixed(2)}%`;
 
         document.querySelector('.judgement').innerHTML = judgement;
@@ -540,6 +675,16 @@
         document.querySelector('#bad').innerText = stats['Bad'];
         document.querySelector('#miss').innerText = stats['Miss'];
         document.querySelector('#maxcombo').innerText = maxCombo;
+
+        // Update ratios
+        const totalNotes = Object.values(stats).reduce((a, b) => a + b, 0);
+        const maRatio = totalNotes > 0 ? (stats['Marvelous'] / stats['Perfect']).toFixed(2) : '0.00';
+        const paRatio = totalNotes > 0 ? (stats['Perfect'] / stats['Great']).toFixed(2) : '0.00';
+        const grRatio = totalNotes > 0 ? (stats['Great'] / (stats['Good'] + stats['Bad'] + stats['Miss'])).toFixed(2) : '0.00';
+
+        document.querySelector('#ma').innerText = `${maRatio}:1`;
+        document.querySelector('#pa').innerText = `${paRatio}:1`;
+        document.querySelector('#gr').innerText = `${grRatio}:1`;
     }
 
     function updateLifeBar() {
@@ -593,6 +738,7 @@
         document.querySelector('.acc').innerHTML = '';
         document.querySelector('.grade').innerHTML = '';
         document.querySelector('.nps').innerHTML = '0 NPS';
+        document.querySelector('.cleartype').innerHTML = '';
         document.querySelector('h2').style.display = 'block'; // show instructions again
         updateStatsDisplay();
     }
